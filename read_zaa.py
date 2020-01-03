@@ -1,8 +1,24 @@
 import io, sys, os
 from chunk_reader import *
+from crc import *
+
+
+
+
+
+for file in os.listdir("."):
+    filename = os.path.basename(file)
+    if filename.endswith(".msh") and not filename.startswith("basepose"):
+
+        anim_name = filename[0:-4]
+
+        print("Found MSH file {}, crc: {}\n".format(anim_name, hex(to_crc(anim_name))))
+
+
 
 
 filename = sys.argv[1]
+
 
 with open(filename, 'rb') as input_file:
     with Reader(input_file) as smna:
@@ -19,7 +35,7 @@ with open(filename, 'rb') as input_file:
         with smna.read_child() as mina:
 
             for i in range(num_anims):
-	            mina.skip_bytes(8)
+                mina.skip_bytes(8)
 
                 anim_hash = mina.read_u32() 
                 anim_crcs += [anim_hash]
@@ -57,14 +73,17 @@ with open(filename, 'rb') as input_file:
 
             for crc in anim_crcs:
 
+                if crc != to_crc("grab"):
+                    continue
+
                 num_frames = anim_metadata[crc]["num_frames"]
                 num_bones = anim_metadata[crc]["num_bones"]
 
                 print("\n\tAnim hash: {} Num frames: {} Num joints: {}".format(hex(crc), num_frames, num_bones))
 
-                bone_num = -1
-                for bone_hash in anim_metadata[crc]["bone_params"]:
-                    bone_num += 1
+                num_frames = 5
+
+                for bone_num, bone_hash in enumerate(anim_metadata[crc]["bone_params"]):
 
                     params_bone = anim_metadata[crc]["bone_params"][bone_hash]
                     
@@ -79,12 +98,15 @@ with open(filename, 'rb') as input_file:
                     for o,start_offset in enumerate(offsets_list):
                         tada.skip_bytes(start_offset)
 
+
                         if o < 4:
                             mult = 1 / 2047
                             offset = 0.0
                         else:
                             mult = qparams[-1]
                             offset = qparams[o - 4]
+
+                            print("\n\t\t\tBias = {}, multiplier = {}".format(offset, mult))
 
 
                         print("\n\t\t\tOffset {}: {} ({}, {} remaining)".format(o,start_offset, tada.get_current_pos(), tada.how_much_left(tada.get_current_pos())))
