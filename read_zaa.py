@@ -17,18 +17,16 @@ with open(filename, 'rb') as input_file:
         anim_metadata = {}
 
         with smna.read_child() as mina:
-            mina.skip_bytes(8)
 
             for i in range(num_anims):
+	            mina.skip_bytes(8)
+
                 anim_hash = mina.read_u32() 
                 anim_crcs += [anim_hash]
 
                 anim_data = {}
                 anim_data["num_frames"] = mina.read_u16()
                 anim_data["num_bones"]  = mina.read_u16()
-
-                if i != num_anims - 1:
-                    mina.skip_bytes(8)
 
                 anim_metadata[anim_hash] = anim_data
 
@@ -79,7 +77,6 @@ with open(filename, 'rb') as input_file:
 
                     
                     for o,start_offset in enumerate(offsets_list):
-                        #start_offset = offsets_list[i]
                         tada.skip_bytes(start_offset)
 
                         if o < 4:
@@ -109,7 +106,6 @@ with open(filename, 'rb') as input_file:
                                     break
 
                                 control = tada.read_i8()
-                                #print("\t\t\t\tControl val: {}".format(hex(control)))
 
                                 if control == 0x00:
                                     print("\t\t\t\tControl: HOLDING FOR A FRAME")
@@ -128,58 +124,12 @@ with open(filename, 'rb') as input_file:
                                     print("\t\t\t\tControl: HOLDING FOR {} FRAMES".format(num_skips))
 
                                     for _ in range(num_skips):
-                                        #print("\t\t{}: {}".format(j, val * mult))
                                         j+=1
-
-                                    #break
 
                                 else:
                                     val += mult * float(control) 
                                     print("\t\t\t\t{}: {}".format(j, val))
                                     j+=1                           
-                                    #while (j < num_frames):
-                                    #    val += mult * float(control)
-                                        #print("\t\t\tControl: UKNOWN VALUE FOUND: {}, val: {}".format(hex(control), val))#float(control)))
-                                        #control = tada.read_i8()
-                                    #    j+=1
 
-                                    #exit_loop = True
-                                    
 
                         tada.reset_pos()
-
-
-
-# Groups of steadily increasing (by 1 in toy example) values > 32 do not use 81 to denote new keys,
-# instead the data seems to be just laid out plainly...
-
-
-# Must divide angle bytes by 2047, 2048 = 2 ^ 11, from 12 bit compression...
-
-
-
-
-
-
-
-
-
-
-
-
-
-# 13 bit: 10110000 11110100
-# 14 bit: 01100000 11101001
-# 15 bit: 10111111 11010010
-# 16 bit: 01111110 10100101
-
-
-
-# 3 11111101 11111111
-# 4 11111001 11111111       11111011 11111111
-# 5 11110001 11111111       11110101 11111111
-# 6 11100001 11111111       11101010 11111111
-# 7 11000001 11111111       11010011 11111111
-# 8 10000001 11111111        10100110 11111111
-# 9 00000001 11111111
-#10 00000001 11111110
